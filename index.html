@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            font-size: 10px;
+        }
+        .form-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 2em;
+            margin-bottom: 1em;
+            color: #333333;
+        }
+        .container {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 20px;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            width: 20%;
+        }
+        .form-columns {
+            display: flex;
+            justify-content: Left;
+        }
+        .form-column {
+            width: 90%;
+        }
+        .table-container {
+            width: 80%;
+            overflow-x: auto;
+        }
+        form {
+            padding: 1em;
+            border: 2px solid #ccc;
+            border-radius: 2em;
+        }
+        div + div {
+            margin-top: 1em;
+        }
+        label {
+            display: block;
+            margin-bottom: .5em;
+            color: #333333;
+        }
+        input, textarea, select {
+            width: 60%;
+            padding: .5em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[readonly] {
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 0.7em;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 0.5em;
+            text-align: left;
+        }
+        .settings {
+            margin-top: 2em;
+            border-top: 1px solid #ccc;
+            padding-top: 1em;
+        }
+        .hidden {
+            display: none;
+        }
+        .delete-btn {
+            cursor: pointer;
+            color: red;
+            font-weight: bold;
+        }
+
+        .table-container {
+            position: relative;
+        }
+
+        .export-btn-container {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .export-btn {
+            padding: 0.7em;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .export-btn:hover {
+            background-color: #0056b3;
+        }
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 1em;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            white-space: nowrap;
+            height: 1.5em;
+        }
+
+        .radio-label input {
+            margin: 0;
+            vertical-align: middle;
+        }
+
+        .radio-label label {
+            margin: 0;
+            vertical-align: middle;
+        }
+
+        /* Styles for the login form */
+        #loginForm {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            margin: 0 auto;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        #loginForm input {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginScreen">
+    <form id="loginForm">
+        <h2>Login</h2>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+        <button type="button" onclick="login()">Login</button>
+    </form>
+</div>
+
+<div id="mainContent" style="display:none;">
+    <h1 class="form-title">Automation Production Offline Tool</h1>
+    <div class="container">
+        <div class="form-container">
+            <div class="form-columns">
+                <div class="form-column">
+                    <form id="mainForm">
+                        <div>
+                            <label for="role">Role</label>
+                            <select id="role" name="role" required>
+                                <option value="" selected></option>
+                                <option value="Cloner">Cloner</option>
+                                <option value="Cutter">Cutter</option>
+                                <option value="Trimmer">Trimmer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="cutDate">Cut Date</label>
+                            <input type="date" id="cutDate" name="cutDate" required>
+                        </div>
+                        <div>
+                            <label for="trimDate">Trim Date</label>
+                            <input type="date" id="trimDate" name="trimDate" required>
+                        </div>
+                        <div>
+                            <label for="submittedBy">Submitted by</label>				
+                            <select id="submittedBy" name="submittedBy" required>
+                                <option value="" selected></option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="strain">Strain</label>			
+                            <select id="strain" name="strain" required>
+                                <option value="" selected></option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="pheno">Pheno</label>
+                            <input type="text" id="pheno" name="pheno" required>
+                        </div>
+                        <div>
+                            <label for="cutLocation">Cut Location</label>
+                            <input type="text" id="cutLocation" name="cutLocation" required>
+                        </div>
+                        <div>
+                            <label>What are they for?</label>
+                            <div class="radio-group">
+                                <div class="radio-label">
+                                    <input type="radio" id="production" name="purpose" value="Production" required>
+                                    <label for="production">Production</label>
+                                </div>
+                                <div class="radio-label">
+                                    <input type="radio" id="reprops" name="purpose" value="Reprops" required>
+                                    <label for="reprops">Reprops</label>
+                                </div>
+                                <div class="radio-label">
+                                    <input type="radio" id="madcoTransfer" name="purpose" value="MadCo Transfer" required>
+                                    <label for="madcoTransfer">MadCo Transfer</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="momId">Mom ID</label>
+                            <input type="text" id="momId" name="momId" required>
+                        </div>
+                        <div>
+                            <label for="shift">What Shift?</label>
+                            <select id="shift" name="shift" required>
+                                <option value="" selected></option>
+                                <option value="1st Shift">1st Shift</option>
+                                <option value="2nd Shift">2nd Shift</option>
+                                <option value="3rd Shift">3rd Shift</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="stuckBy">Stuck by</label>
+                            <select id="stuckBy" name="stuckBy" required>
+                                <option value="" selected></option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="cutBy">Cut by</label>
+                            <select id="cutBy" name="cutBy" required>
+                                <option value="" selected></option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="trimmedBy">Trimmed by</label>
+                            <select id="trimmedBy" name="trimmedBy" required>
+                                <option value="" selected></option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="propRoomLocation">Prop Room Location</label>
+                            <input type="text" id="propRoomLocation" name="propRoomLocation" required>
+                        </div>
+                        <div>
+                            <label for="domeRatio">Dome Ratio</label>
+                            <div class="radio-group">
+                                <div class="radio-label">
+                                    <input type="radio" id="domeRatio39" name="domeRatio" value="39" checked>
+                                    <label for="domeRatio39">39</label>
+                                </div>
+                                <div class="radio-label">
+                                    <input type="radio" id="domeRatio48" name="domeRatio" value="48">
+                                    <label for="domeRatio48">48</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="domes">Domes</label>
+                            <input type="text" id="domes" name="domes" required>
+                        </div>
+                        <div>
+                            <label for="pitchers">Pitchers</label>
+                            <input type="text" id="pitchers" name="pitchers" required>
+                        </div>
+                        <div>
+                            <label for="partial">Partial</label>
+                            <input type="text" id="partial" name="partial" oninput="showNextPartial('partial')">
+                        </div>
+                        <div id="partial2Container" class="hidden">
+                            <label for="partial2">Partial 2</label>
+                            <input type="text" id="partial2" name="partial2" oninput="showNextPartial('partial2')">
+                        </div>
+                        <div id="partial3Container" class="hidden">
+                            <label for="partial3">Partial 3</label>
+                            <input type="text" id="partial3" name="partial3" oninput="showNextPartial('partial3')">
+                        </div>
+                        <div id="partial4Container" class="hidden">
+                            <label for="partial4">Partial 4</label>
+                            <input type="text" id="partial4" name="partial4" oninput="showNextPartial('partial4')">
+                        </div>
+                        <div id="partial5Container" class="hidden">
+                            <label for="partial5">Partial 5</label>
+                            <input type="text" id="partial5" name="partial5">
+                        </div>
+                        <div>
+                            <label for="notes">Notes</label>
+                            <textarea id="notes" name="notes"></textarea>
+                        </div>
+                        <div>
+                            <button type="button" onclick="addToTable()">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Role</th>
+                        <th>Cut Date</th>
+                        <th>Trim Date</th>
+                        <th>Submitted by</th>
+                        <th>Strain</th>
+                        <th>Pheno</th>
+                        <th>Cut Location</th>
+                        <th>Purpose</th>
+                        <th>Mom ID</th>
+                        <th>Shift</th>
+                        <th>Stuck by</th>
+                        <th>Cut by</th>
+                        <th>Trimmed by</th>
+                        <th>Prop Room Location</th>
+                        <th>Domes</th>
+                        <th>Dome Ratio</th>
+                        <th>Pitchers</th>
+                        <th>Partial</th>
+                        <th>Partial 2</th>
+                        <th>Partial 3</th>
+                        <th>Partial 4</th>
+                        <th>Partial 5</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be inserted here -->
+                </tbody>
+            </table>
+            <div class="export-btn-container">
+                <button type="button" onclick="exportToCSV()">Export to Excel</button>
+            </div>
+        </div>
+    </div>
+    <div class="settings">
+        <div>
+            <label for="fieldSelect">Select Field to Update</label>
+            <select id="fieldSelect">
+                <option value="names">Names</option>
+                <option value="strain">Strain</option>
+            </select>
+        </div>
+        <div>
+            <label for="fieldValues">Enter Values (comma-separated or line-separated)</label>
+            <textarea id="fieldValues" placeholder="e.g. Cloner, Cutter, Trimmer or Cloner&#10;Cutter&#10;Trimmer"></textarea>
+        </div>
+        <div>
+            <button type="button" onclick="updateField()">Update Field</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        if (password === "AmPED") {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            localStorage.setItem('username', username);
+        } else {
+            alert('Incorrect password. Please try again.');
+        }
+    }
+
+    function updateField() {
+        const fieldSelect = document.getElementById('fieldSelect').value;
+        const fieldValues = document.getElementById('fieldValues').value.split(/,|\n/).map(value => value.trim()).filter(value => value);
+
+        if (fieldSelect === "names") {
+            const nameFields = ["submittedBy", "stuckBy", "cutBy", "trimmedBy"];
+            nameFields.forEach(field => {
+                const selectElement = document.getElementById(field);
+                selectElement.innerHTML = ''; // Clear existing options
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = '';
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                fieldValues.forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    selectElement.appendChild(option);
+                });
+
+                // Set the value to empty string to clear the field
+                selectElement.value = '';
+            });
+        } else {
+            const selectElement = document.getElementById(fieldSelect);
+            selectElement.innerHTML = ''; // Clear existing options
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '';
+            defaultOption.selected = true;
+            selectElement.appendChild(defaultOption);
+
+            fieldValues.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                selectElement.appendChild(option);
+            });
+
+            // Set the value to empty string to clear the field
+            selectElement.value = '';
+        }
+
+        // Save to localStorage
+        localStorage.setItem(fieldSelect, JSON.stringify(fieldValues));
+
+        document.getElementById('fieldValues').value = ''; // Clear the input field
+        alert(`${fieldSelect} updated successfully!`);
+    }
+
+    function addToTable() {
+        const form = document.getElementById('mainForm');
+        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+        const newRow = table.insertRow();
+        
+        const deleteCell = newRow.insertCell();
+        deleteCell.innerHTML = '<span class="delete-btn" onclick="deleteRow(this)">🗑️</span>';
+        
+        const fields = [
+            'role', 'cutDate', 'trimDate', 'submittedBy', 'strain', 'pheno', 'cutLocation',
+            'purpose', 'momId', 'shift', 'stuckBy', 'cutBy', 'trimmedBy', 'propRoomLocation',
+            'domes', 'domeRatio', 'pitchers', 'partial', 'partial2', 'partial3', 'partial4', 'partial5', 'notes'
+        ];
+        
+        fields.forEach(field => {
+            const cell = newRow.insertCell();
+            const inputField = form.querySelector(`[name="${field}"]`);
+            cell.textContent = inputField ? inputField.value : '';
+        });
+
+        form.reset();
+        resetSelectFields();
+        resetPartials();
+
+        saveTableData(); // Save the table data to localStorage
+    }
+
+    function deleteRow(btn) {
+        const row = btn.parentNode.parentNode;
+        row.parentNode.removeChild(row);
+        saveTableData();
+    }
+
+    function resetSelectFields() {
+        const selectFields = document.querySelectorAll('select');
+        selectFields.forEach(select => {
+            select.value = "";
+        });
+    }
+
+    function showNextPartial(partialId) {
+        const nextPartial = {
+            partial: 'partial2Container',
+            partial2: 'partial3Container',
+            partial3: 'partial4Container',
+            partial4: 'partial5Container'
+        }[partialId];
+
+        if (nextPartial) {
+            document.getElementById(nextPartial).classList.remove('hidden');
+        }
+    }
+
+    function resetPartials() {
+        const partials = ['partial2Container', 'partial3Container', 'partial4Container', 'partial5Container'];
+        partials.forEach(partial => {
+            document.getElementById(partial).classList.add('hidden');
+            document.getElementById(partial).querySelector('input').value = '';
+        });
+    }
+
+    document.getElementById('role').addEventListener('change', function() {
+        const role = this.value;
+
+        const trimDate = document.getElementById('trimDate');
+        const cutBy = document.getElementById('cutBy');
+        const trimmedBy = document.getElementById('trimmedBy');
+        const pitchers = document.getElementById('pitchers');
+        const stuckBy = document.getElementById('stuckBy');
+        const cutDate = document.getElementById('cutDate');
+        const domes = document.getElementById('domes');
+
+        // Enable all fields by default
+        const fields = [trimDate, cutBy, trimmedBy, pitchers, stuckBy, cutDate, domes];
+        fields.forEach(field => field.disabled = false);
+
+        // Disable fields based on the selected role
+        if (role === 'Cloner') {
+            [trimDate, cutBy, trimmedBy, pitchers].forEach(field => field.disabled = true);
+        } else if (role === 'Cutter') {
+            [trimDate, stuckBy, trimmedBy, pitchers].forEach(field => field.disabled = true);
+        } else if (role === 'Trimmer') {
+            [cutDate, stuckBy, cutBy, domes].forEach(field => field.disabled = true);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSettings();
+        loadTableData();
+        if (localStorage.getItem('username')) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        } else {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+        }
+    });
+
+    function loadSettings() {
+        const fieldSelect = document.getElementById('fieldSelect').value;
+        const savedNames = localStorage.getItem('names');
+        const savedStrains = localStorage.getItem('strain');
+
+        if (savedNames) {
+            const nameFields = ["submittedBy", "stuckBy", "cutBy", "trimmedBy"];
+            const fieldValues = JSON.parse(savedNames);
+
+            nameFields.forEach(field => {
+                const selectElement = document.getElementById(field);
+                selectElement.innerHTML = ''; // Clear existing options
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = '';
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                fieldValues.forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    selectElement.appendChild(option);
+                });
+
+                // Set the value to empty string to clear the field
+                selectElement.value = '';
+            });
+        }
+
+        if (savedStrains) {
+            const selectElement = document.getElementById('strain');
+            const fieldValues = JSON.parse(savedStrains);
+            selectElement.innerHTML = ''; // Clear existing options
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '';
+            defaultOption.selected = true;
+            selectElement.appendChild(defaultOption);
+
+            fieldValues.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                selectElement.appendChild(option);
+            });
+
+            // Set the value to empty string to clear the field
+            selectElement.value = '';
+        }
+    }
+
+    function saveTableData() {
+        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+        const rows = Array.from(table.rows);
+        const tableData = rows.map(row => {
+            return Array.from(row.cells).slice(1).map(cell => cell.textContent); // Exclude the first cell (trash icon)
+        });
+        localStorage.setItem('tableData', JSON.stringify(tableData));
+    }
+
+    function loadTableData() {
+        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+        const tableData = JSON.parse(localStorage.getItem('tableData') || '[]');
+        tableData.forEach(rowData => {
+            const newRow = table.insertRow();
+            const deleteCell = newRow.insertCell();
+            deleteCell.innerHTML = '<span class="delete-btn" onclick="deleteRow(this)">🗑️</span>';
+            rowData.forEach(cellData => {
+                const cell = newRow.insertCell();
+                cell.textContent = cellData;
+            });
+        });
+    }
+
+    function exportToCSV() {
+        const tableData = JSON.parse(localStorage.getItem('tableData') || '[]');
+        if (tableData.length === 0) {
+            alert('No data to export.');
+            return;
+        }
+
+        const headers = [
+            'Role', 'Cut Date', 'Trim Date', 'Submitted by', 'Strain', 'Pheno', 'Cut Location',
+            'Purpose', 'Mom ID', 'Shift', 'Stuck by', 'Cut by', 'Trimmed by', 'Prop Room Location',
+            'Domes', 'Dome Ratio', 'Pitchers', 'Partial', 'Partial 2', 'Partial 3', 'Partial 4', 'Partial 5', 'Notes'
+        ];
+
+        const csvContent = [
+            headers.join(','), // Add the headers
+            ...tableData.map(row => row.map(cell => `"${cell}"`).join(',')) // Add the rows
+        ].join('\n');
+
+        // Get username from localStorage
+        const username = localStorage.getItem('username') || 'user';
+
+        // Get current date and time
+        const now = new Date();
+        const formattedDate = now.toISOString().split('T')[0];
+        const formattedTime = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+
+        // Create the file name
+        const fileName = `${username}_${formattedDate}_${formattedTime}.csv`;
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clear the data table after download
+        clearTableData();
+    }
+
+    function clearTableData() {
+        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+        while (table.firstChild) {
+            table.removeChild(table.firstChild);
+        }
+        localStorage.removeItem('tableData');
+    }
+</script>
+
+</body>
+</html>
