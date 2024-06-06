@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Example</title>
+    <title>Plant Work Events Offline Tool</title>
     <style>
+
+#loginForm {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    margin: 100px auto; /* Centering the form */
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+}
+
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -117,43 +128,6 @@
         .export-btn:hover {
             background-color: #0056b3;
         }
-        .radio-group {
-            display: flex;
-            align-items: center;
-            gap: 1em;
-        }
-
-        .radio-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5em;
-            white-space: nowrap;
-            height: 1.5em;
-        }
-
-        .radio-label input {
-            margin: 0;
-            vertical-align: middle;
-        }
-
-        .radio-label label {
-            margin: 0;
-            vertical-align: middle;
-        }
-
-        /* Styles for the login form */
-        #loginForm {
-            display: flex;
-            flex-direction: column;
-            width: 300px;
-            margin: 0 auto;
-            border: 2px solid #ccc;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        #loginForm input {
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
@@ -170,72 +144,24 @@
 </div>
 
 <div id="mainContent" style="display:none;">
-    <h1 class="form-title">Automation Production Offline Tool</h1>
+    <h1 class="form-title">Plant Work Events Offline Tool</h1>
     <div class="container">
         <div class="form-container">
             <div class="form-columns">
                 <div class="form-column">
                     <form id="mainForm">
                         <div>
-                            <label for="role">Role</label>
-                            <select id="role" name="role" required>
-                                <option value="" selected></option>
-                                <option value="Cloner">Cloner</option>
-                                <option value="Cutter">Cutter</option>
-                                <option value="Trimmer">Trimmer</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="cutDate">Cut Date</label>
-                            <input type="date" id="cutDate" name="cutDate" required>
-                        </div>
-                        <div>
-                            <label for="trimDate">Trim Date</label>
-                            <input type="date" id="trimDate" name="trimDate" required>
-                        </div>
-                        <div>
-                            <label for="submittedBy">Submitted by</label>				
+                            <label for="submittedBy">Submitted by</label>
                             <select id="submittedBy" name="submittedBy" required>
                                 <option value="" selected></option>
                             </select>
                         </div>
                         <div>
-                            <label for="strain">Strain</label>			
-                            <select id="strain" name="strain" required>
-                                <option value="" selected></option>
-                            </select>
+                            <label for="eventDate">Event Date</label>
+                            <input type="date" id="eventDate" name="eventDate" required>
                         </div>
                         <div>
-                            <label for="pheno">Pheno</label>
-                            <input type="text" id="pheno" name="pheno" required>
-                        </div>
-                        <div>
-                            <label for="cutLocation">Cut Location</label>
-                            <input type="text" id="cutLocation" name="cutLocation" required>
-                        </div>
-                        <div>
-                            <label>What are they for?</label>
-                            <div class="radio-group">
-                                <div class="radio-label">
-                                    <input type="radio" id="production" name="purpose" value="Production" required>
-                                    <label for="production">Production</label>
-                                </div>
-                                <div class="radio-label">
-                                    <input type="radio" id="reprops" name="purpose" value="Reprops" required>
-                                    <label for="reprops">Reprops</label>
-                                </div>
-                                <div class="radio-label">
-                                    <input type="radio" id="madcoTransfer" name="purpose" value="MadCo Transfer" required>
-                                    <label for="madcoTransfer">MadCo Transfer</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="momId">Mom ID</label>
-                            <input type="text" id="momId" name="momId" required>
-                        </div>
-                        <div>
-                            <label for="shift">What Shift?</label>
+                            <label for="shift">Which Shift?</label>
                             <select id="shift" name="shift" required>
                                 <option value="" selected></option>
                                 <option value="1st Shift">1st Shift</option>
@@ -244,71 +170,82 @@
                             </select>
                         </div>
                         <div>
-                            <label for="stuckBy">Stuck by</label>
-                            <select id="stuckBy" name="stuckBy" required>
+                            <label for="employeeCompletingEvent">Employee Completing Event</label>
+                            <select id="employeeCompletingEvent" name="employeeCompletingEvent" required>
                                 <option value="" selected></option>
                             </select>
                         </div>
                         <div>
-                            <label for="cutBy">Cut by</label>
-                            <select id="cutBy" name="cutBy" required>
+                            <label for="roomEventOccurredIn">Room Event Occurred in</label>
+                            <select id="roomEventOccurredIn" name="roomEventOccurredIn" onchange="showEventField()" required>
                                 <option value="" selected></option>
+                                <option value="Mom 1">Mom 1</option>
+                                <option value="Mom 2">Mom 2</option>
+                                <option value="Mom 3">Mom 3</option>
+                                <option value="Veg 1">Veg 1</option>
+                                <option value="Veg 2">Veg 2</option>
+                                <option value="Veg 3">Veg 3</option>
+                                <option value="Veg 4">Veg 4</option>
+                                <option value="Veg 5">Veg 5</option>
+                                <option value="Veg 6">Veg 6</option>
+                                <option value="Flower 1">Flower 1</option>
+                                <option value="Flower 2">Flower 2</option>
+                                <option value="Flower 3">Flower 3</option>
+                                <option value="Flower 4">Flower 4</option>
+                                <option value="Flower 5">Flower 5</option>
+                                <option value="Flower 6">Flower 6</option>
+                                <option value="Flower 7">Flower 7</option>
+                                <option value="Flower 8">Flower 8</option>
+                                <option value="Flower 9">Flower 9</option>
+                                <option value="Flower 10">Flower 10</option>
+                                <option value="Flower 11">Flower 11</option>
+                                <option value="Flower 12">Flower 12</option>
+                                <option value="Flower 13">Flower 13</option>
+                                <option value="Flower 14">Flower 14</option>
+                                <option value="Flower 15">Flower 15</option>
+                                <option value="Flower 16">Flower 16</option>
+                                <option value="Flower 17">Flower 17</option>
+                                <option value="Flower 18">Flower 18</option>
+                            </select>
+                        </div>
+                        <div id="momEventContainer" class="hidden">
+                            <label for="momEvent">Mom Event</label>
+                            <select id="momEvent" name="momEvent">
+                                <option value="1st topping">1st topping</option>
+                                <option value="2nd topping">2nd topping</option>
+                                <option value="Maintenance Topping">Maintenance Topping</option>
+                                <option value="Defoliation">Defoliation</option>
+                                <option value="Prune/Skirt">Prune/Skirt</option>
+                            </select>
+                        </div>
+                        <div id="vegEventContainer" class="hidden">
+                            <label for="vegEvent">Veg Event</label>
+                            <select id="vegEvent" name="vegEvent">
+                                <option value="Topping">Topping</option>
+                                <option value="Prune/Skirt">Prune/Skirt</option>
+                            </select>
+                        </div>
+                        <div id="flowerEventContainer" class="hidden">
+                            <label for="flowerEvent">Flower Event</label>
+                            <select id="flowerEvent" name="flowerEvent">
+                                <option value="Flower Topping">Flower Topping</option>
+                                <option value="21-Day Prune">21-Day Prune</option>
+                                <option value="42-Day Defol">42-Day Defol</option>
+                                <option value="Harvest defol">Harvest defol</option>
+                                <option value="Necrotic leaf Defol">Necrotic leaf Defol</option>
                             </select>
                         </div>
                         <div>
-                            <label for="trimmedBy">Trimmed by</label>
-                            <select id="trimmedBy" name="trimmedBy" required>
-                                <option value="" selected></option>
-                            </select>
+                            <label for="weightIncludingBin">Weight of Material Including Bin (Kilograms)</label>
+                            <input type="number" id="weightIncludingBin" name="weightIncludingBin" required>
                         </div>
                         <div>
-                            <label for="propRoomLocation">Prop Room Location</label>
-                            <input type="text" id="propRoomLocation" name="propRoomLocation" required>
+                            <label for="numberOfBinsWeighed">Number of Bins Weighed</label>
+                            <input type="number" id="numberOfBinsWeighed" name="numberOfBinsWeighed" required>
                         </div>
                         <div>
-                            <label for="domeRatio">Dome Ratio</label>
-                            <div class="radio-group">
-                                <div class="radio-label">
-                                    <input type="radio" id="domeRatio39" name="domeRatio" value="39" checked>
-                                    <label for="domeRatio39">39</label>
-                                </div>
-                                <div class="radio-label">
-                                    <input type="radio" id="domeRatio48" name="domeRatio" value="48">
-                                    <label for="domeRatio48">48</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="domes">Domes</label>
-                            <input type="text" id="domes" name="domes" required>
-                        </div>
-                        <div>
-                            <label for="pitchers">Pitchers</label>
-                            <input type="text" id="pitchers" name="pitchers" required>
-                        </div>
-                        <div>
-                            <label for="partial">Partial</label>
-                            <input type="text" id="partial" name="partial" oninput="showNextPartial('partial')">
-                        </div>
-                        <div id="partial2Container" class="hidden">
-                            <label for="partial2">Partial 2</label>
-                            <input type="text" id="partial2" name="partial2" oninput="showNextPartial('partial2')">
-                        </div>
-                        <div id="partial3Container" class="hidden">
-                            <label for="partial3">Partial 3</label>
-                            <input type="text" id="partial3" name="partial3" oninput="showNextPartial('partial3')">
-                        </div>
-                        <div id="partial4Container" class="hidden">
-                            <label for="partial4">Partial 4</label>
-                            <input type="text" id="partial4" name="partial4" oninput="showNextPartial('partial4')">
-                        </div>
-                        <div id="partial5Container" class="hidden">
-                            <label for="partial5">Partial 5</label>
-                            <input type="text" id="partial5" name="partial5">
-                        </div>
-                        <div>
-                            <label for="notes">Notes</label>
-                            <textarea id="notes" name="notes"></textarea>
+                            <label for="eventNotes">Event Notes (if applicable)</label>
+                            <textarea id="eventNotes" name="eventNotes"></textarea>
                         </div>
                         <div>
                             <button type="button" onclick="addToTable()">Submit</button>
@@ -322,29 +259,17 @@
                 <thead>
                     <tr>
                         <th>Action</th>
-                        <th>Role</th>
-                        <th>Cut Date</th>
-                        <th>Trim Date</th>
                         <th>Submitted by</th>
-                        <th>Strain</th>
-                        <th>Pheno</th>
-                        <th>Cut Location</th>
-                        <th>Purpose</th>
-                        <th>Mom ID</th>
-                        <th>Shift</th>
-                        <th>Stuck by</th>
-                        <th>Cut by</th>
-                        <th>Trimmed by</th>
-                        <th>Prop Room Location</th>
-                        <th>Domes</th>
-                        <th>Dome Ratio</th>
-                        <th>Pitchers</th>
-                        <th>Partial</th>
-                        <th>Partial 2</th>
-                        <th>Partial 3</th>
-                        <th>Partial 4</th>
-                        <th>Partial 5</th>
-                        <th>Notes</th>
+                        <th>Event Date</th>
+                        <th>Which Shift?</th>
+                        <th>Employee Completing Event</th>
+                        <th>Room Event Occurred in</th>
+                        <th>Mom Event</th>
+                        <th>Veg Event</th>
+                        <th>Flower Event</th>
+                        <th>Weight of Material Including Bin (Kilograms)</th>
+                        <th>Number of Bins Weighed</th>
+                        <th>Event Notes (if applicable)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -361,7 +286,6 @@
             <label for="fieldSelect">Select Field to Update</label>
             <select id="fieldSelect">
                 <option value="names">Names</option>
-                <option value="strain">Strain</option>
             </select>
         </div>
         <div>
@@ -392,7 +316,7 @@
         const fieldValues = document.getElementById('fieldValues').value.split(/,|\n/).map(value => value.trim()).filter(value => value);
 
         if (fieldSelect === "names") {
-            const nameFields = ["submittedBy", "stuckBy", "cutBy", "trimmedBy"];
+            const nameFields = ["submittedBy", "employeeCompletingEvent"];
             nameFields.forEach(field => {
                 const selectElement = document.getElementById(field);
                 selectElement.innerHTML = ''; // Clear existing options
@@ -450,9 +374,8 @@
         deleteCell.innerHTML = '<span class="delete-btn" onclick="deleteRow(this)">🗑️</span>';
         
         const fields = [
-            'role', 'cutDate', 'trimDate', 'submittedBy', 'strain', 'pheno', 'cutLocation',
-            'purpose', 'momId', 'shift', 'stuckBy', 'cutBy', 'trimmedBy', 'propRoomLocation',
-            'domes', 'domeRatio', 'pitchers', 'partial', 'partial2', 'partial3', 'partial4', 'partial5', 'notes'
+            'submittedBy', 'eventDate', 'shift', 'employeeCompletingEvent', 'roomEventOccurredIn',
+            'momEvent', 'vegEvent', 'flowerEvent', 'weightIncludingBin', 'numberOfBinsWeighed', 'eventNotes'
         ];
         
         fields.forEach(field => {
@@ -463,7 +386,7 @@
 
         form.reset();
         resetSelectFields();
-        resetPartials();
+        hideEventFields();
 
         saveTableData(); // Save the table data to localStorage
     }
@@ -481,51 +404,32 @@
         });
     }
 
-    function showNextPartial(partialId) {
-        const nextPartial = {
-            partial: 'partial2Container',
-            partial2: 'partial3Container',
-            partial3: 'partial4Container',
-            partial4: 'partial5Container'
-        }[partialId];
+function showEventField() {
+    const room = document.getElementById('roomEventOccurredIn').value;
+    hideEventFields();
+    clearEventFields();
 
-        if (nextPartial) {
-            document.getElementById(nextPartial).classList.remove('hidden');
-        }
+    if (room.startsWith('Mom')) {
+        document.getElementById('momEventContainer').classList.remove('hidden');
+    } else if (room.startsWith('Veg')) {
+        document.getElementById('vegEventContainer').classList.remove('hidden');
+    } else if (room.startsWith('Flower')) {
+        document.getElementById('flowerEventContainer').classList.remove('hidden');
     }
+}
 
-    function resetPartials() {
-        const partials = ['partial2Container', 'partial3Container', 'partial4Container', 'partial5Container'];
-        partials.forEach(partial => {
-            document.getElementById(partial).classList.add('hidden');
-            document.getElementById(partial).querySelector('input').value = '';
-        });
+function clearEventFields() {
+    document.getElementById('momEvent').value = '';
+    document.getElementById('vegEvent').value = '';
+    document.getElementById('flowerEvent').value = '';
+}
+
+
+    function hideEventFields() {
+        document.getElementById('momEventContainer').classList.add('hidden');
+        document.getElementById('vegEventContainer').classList.add('hidden');
+        document.getElementById('flowerEventContainer').classList.add('hidden');
     }
-
-    document.getElementById('role').addEventListener('change', function() {
-        const role = this.value;
-
-        const trimDate = document.getElementById('trimDate');
-        const cutBy = document.getElementById('cutBy');
-        const trimmedBy = document.getElementById('trimmedBy');
-        const pitchers = document.getElementById('pitchers');
-        const stuckBy = document.getElementById('stuckBy');
-        const cutDate = document.getElementById('cutDate');
-        const domes = document.getElementById('domes');
-
-        // Enable all fields by default
-        const fields = [trimDate, cutBy, trimmedBy, pitchers, stuckBy, cutDate, domes];
-        fields.forEach(field => field.disabled = false);
-
-        // Disable fields based on the selected role
-        if (role === 'Cloner') {
-            [trimDate, cutBy, trimmedBy, pitchers].forEach(field => field.disabled = true);
-        } else if (role === 'Cutter') {
-            [trimDate, stuckBy, trimmedBy, pitchers].forEach(field => field.disabled = true);
-        } else if (role === 'Trimmer') {
-            [cutDate, stuckBy, cutBy, domes].forEach(field => field.disabled = true);
-        }
-    });
 
     document.addEventListener('DOMContentLoaded', function() {
         loadSettings();
@@ -543,9 +447,10 @@
         const fieldSelect = document.getElementById('fieldSelect').value;
         const savedNames = localStorage.getItem('names');
         const savedStrains = localStorage.getItem('strain');
+        const savedRooms = localStorage.getItem('rooms');
 
         if (savedNames) {
-            const nameFields = ["submittedBy", "stuckBy", "cutBy", "trimmedBy"];
+            const nameFields = ["submittedBy", "employeeCompletingEvent"];
             const fieldValues = JSON.parse(savedNames);
 
             nameFields.forEach(field => {
@@ -573,6 +478,28 @@
         if (savedStrains) {
             const selectElement = document.getElementById('strain');
             const fieldValues = JSON.parse(savedStrains);
+            selectElement.innerHTML = ''; // Clear existing options
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '';
+            defaultOption.selected = true;
+            selectElement.appendChild(defaultOption);
+
+            fieldValues.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                selectElement.appendChild(option);
+            });
+
+            // Set the value to empty string to clear the field
+            selectElement.value = '';
+        }
+
+        if (savedRooms) {
+            const selectElement = document.getElementById('roomEventOccurredIn');
+            const fieldValues = JSON.parse(savedRooms);
             selectElement.innerHTML = ''; // Clear existing options
 
             const defaultOption = document.createElement('option');
@@ -624,9 +551,9 @@
         }
 
         const headers = [
-            'Role', 'Cut Date', 'Trim Date', 'Submitted by', 'Strain', 'Pheno', 'Cut Location',
-            'Purpose', 'Mom ID', 'Shift', 'Stuck by', 'Cut by', 'Trimmed by', 'Prop Room Location',
-            'Domes', 'Dome Ratio', 'Pitchers', 'Partial', 'Partial 2', 'Partial 3', 'Partial 4', 'Partial 5', 'Notes'
+            'Submitted by', 'Event Date', 'Which Shift?', 'Employee Completing Event', 'Room Event Occurred in',
+            'Mom Event', 'Veg Event', 'Flower Event', 'Weight of Material Including Bin (Kilograms)', 
+            'Number of Bins Weighed', 'Event Notes (if applicable)'
         ];
 
         const csvContent = [
@@ -643,7 +570,7 @@
         const formattedTime = now.toTimeString().split(' ')[0].replace(/:/g, '-');
 
         // Create the file name
-        const fileName = `${username}_${formattedDate}_${formattedTime}.csv`;
+        const fileName = `${username}_${formattedDate}_${formattedTime}_PWET.csv`;
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
