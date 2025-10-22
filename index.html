@@ -1,4 +1,4 @@
-/* WORKING AS OF 10.22 + derived columns pack (no login changes) */
+/* WORKING AS OF 10.22 + derived columns pack + actual weight preview (no login changes) */
 
 <!DOCTYPE html>
 <html lang="en">
@@ -168,6 +168,12 @@
               <input type="number" id="numberOfBinsWeighed" name="numberOfBinsWeighed" step="any" required>
             </div>
 
+            <!-- NEW: Actual Weight preview -->
+            <div>
+              <label for="actualPreview">Actual Weight of collected material (grams)</label>
+              <input type="text" id="actualPreview" readonly>
+            </div>
+
             <div>
               <label for="eventNotes">Event Notes (if applicable)</label>
               <textarea id="eventNotes" name="eventNotes" rows="3" style="height:3.5em;"></textarea>
@@ -335,10 +341,17 @@ function initializeApp(){
   loadSettingsIntoFormLists();
   loadTableFromStorage();
 
-  // Show/hide event pickers based on room
+  // Show/hide event pickers based on room + previews
   const roomSel = document.getElementById('roomEventOccurredIn');
   roomSel.addEventListener('change', () => { showEventField(); updateRoomHelperPreview(); });
+
+  ['weightIncludingBin','numberOfBinsWeighed'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateActualPreview);
+  });
+
   updateRoomHelperPreview();
+  updateActualPreview();
 
   // Clear dependent fields when container is hidden
   hideEventFields();
@@ -365,6 +378,7 @@ function saveConfig(){
   applyListToForm('rooms', rooms);
 
   updateRoomHelperPreview();
+  updateActualPreview();
   closeConfig();
 }
 
@@ -459,6 +473,11 @@ function createdGetter(){
   }
   return new Date().toLocaleString(); // local timestamp on create
 }
+// NEW: live preview updater for Actual Weight
+function updateActualPreview(){
+  const box = $('#actualPreview');
+  if (box) box.value = computeActualGrams();
+}
 
 /* =======================
    ADD / EDIT / DELETE / SAVE
@@ -500,7 +519,7 @@ function startEdit(btn){
   const createdCellIndex = COLUMNS.findIndex(c=>c.id==='created');
   $('#createdStore').value = createdCellIndex >= 0 ? (cells[createdCellIndex].textContent || '') : '';
 
-  // Populate editable inputs (skip derived)
+  // Map column values by id
   const map = {};
   COLUMNS.forEach((c, i)=>{ map[c.id] = cells[i].textContent; });
 
@@ -524,6 +543,7 @@ function startEdit(btn){
   setIfExists('eventNotes',          map.eventNotes);
 
   updateRoomHelperPreview();
+  updateActualPreview();
 
   $('#submitBtn').textContent = 'Save Changes';
   $('#cancelEditBtn').classList.remove('hidden');
@@ -544,6 +564,7 @@ function resetFormState(){
   $('#submitBtn').textContent = 'Submit';
   $('#cancelEditBtn').classList.add('hidden');
   updateRoomHelperPreview();
+  updateActualPreview();
 }
 
 /* =======================
