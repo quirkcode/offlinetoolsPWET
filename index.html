@@ -1,3 +1,5 @@
+/* WORKING AS OF 10.22 + derived columns pack (no login changes) */
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +24,7 @@
     button:hover { background:#0056b3; }
     table { width:100%; border-collapse:collapse; }
     table, th, td { border:1px solid #ccc; }
-    th, td { padding:.5em; text-align:left; }
+    th, td { padding:.5em; text-align:left; white-space:nowrap; }
 
     .hidden { display:none !important; }
     .muted { color:#666; font-style:italic; }
@@ -50,7 +52,7 @@
 </head>
 <body>
 
-<!-- LOGIN (OG-stable) -->
+<!-- LOGIN (OG-stable — UNTOUCHED) -->
 <div id="loginScreen">
   <form id="loginForm" onsubmit="event.preventDefault(); login();">
     <h2>Login</h2>
@@ -79,8 +81,9 @@
       <div class="form-columns">
         <div class="form-column">
           <form id="mainForm" onsubmit="event.preventDefault(); submitForm();">
-            <!-- edit index -->
+            <!-- edit index + immutable Created store for edit -->
             <input type="hidden" id="editingRowIndex" value="-1">
+            <input type="hidden" id="createdStore" value="">
 
             <div>
               <label for="submittedBy">Submitted by</label>
@@ -112,10 +115,14 @@
             </div>
 
             <div>
-              <label for="roomEventOccurredIn">Room Event Occurred in</label>
+              <label for="roomEventOccurredIn">Room Event occurred in</label>
               <select id="roomEventOccurredIn" name="roomEventOccurredIn" required>
                 <option value="" selected></option>
               </select>
+              <!-- RoomHelper preview -->
+              <div class="muted" style="margin-top:6px;">
+                RoomHelper preview: <input id="roomHelperPreview" type="text" readonly style="width:120px;">
+              </div>
             </div>
 
             <!-- MOM -->
@@ -152,13 +159,13 @@
             </div>
 
             <div>
-              <label for="weightIncludingBin">Weight of Material Including Bin (Kilograms)</label>
-              <input type="number" id="weightIncludingBin" name="weightIncludingBin" required>
+              <label for="weightIncludingBin">Weight of material including bin (Kilograms)</label>
+              <input type="number" id="weightIncludingBin" name="weightIncludingBin" step="any" required>
             </div>
 
             <div>
-              <label for="numberOfBinsWeighed">Number of Bins Weighed</label>
-              <input type="number" id="numberOfBinsWeighed" name="numberOfBinsWeighed" required>
+              <label for="numberOfBinsWeighed">Number of bins weighed</label>
+              <input type="number" id="numberOfBinsWeighed" name="numberOfBinsWeighed" step="any" required>
             </div>
 
             <div>
@@ -179,18 +186,23 @@
       <table id="dataTable" aria-label="Submitted rows">
         <thead>
           <tr id="headerRow">
+            <!-- Exact destination headers/order -->
             <th>Action</th>
             <th>Submitted by</th>
             <th>Event Date</th>
+            <th>Created</th>
             <th>Which Shift?</th>
             <th>Employee Completing Event</th>
-            <th>Room Event Occurred in</th>
+            <th>Room Event occurred in</th>
+            <th>RoomHelper</th>
+            <th>Actual Weight of collected material (grams)</th>
             <th>Mom Event</th>
             <th>Veg Event</th>
             <th>Flower Event</th>
-            <th>Weight of Material Including Bin (Kilograms)</th>
-            <th>Number of Bins Weighed</th>
             <th>Event Notes (if applicable)</th>
+            <th>Weight of material including bin (Kilograms)</th>
+            <th>Number of bins weighed</th>
+            <th>Kilograms to Grams Conversion</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -231,7 +243,7 @@
 /* =======================
    CONFIG & KEYS
    ======================= */
-const PASSWORD = "PWET";                       // OG-stable
+const PASSWORD = "PWET";                       // OG-stable (UNTOUCHED)
 const APP_KEY = "pwet.offline";                // namespace
 const TABLE_KEY = `${APP_KEY}.table`;
 const USER_KEY  = `${APP_KEY}.user`;
@@ -248,25 +260,28 @@ const DEFAULT_ROOMS = [
 ];
 
 /* =======================
-   TABLE COLUMN SCHEMA
-   (must match <thead>)
+   TABLE COLUMN SCHEMA (destination headers)
    ======================= */
 const COLUMNS = [
-  { id: "submittedBy",            header: "Submitted by",                             getter: () => val("#submittedBy") },
-  { id: "eventDate",              header: "Event Date",                               getter: () => val("#eventDate") },
-  { id: "shift",                  header: "Which Shift?",                             getter: () => val("#shift") },
-  { id: "employeeCompletingEvent",header: "Employee Completing Event",                getter: () => val("#employeeCompletingEvent") },
-  { id: "roomEventOccurredIn",    header: "Room Event Occurred in",                   getter: () => val("#roomEventOccurredIn") },
-  { id: "momEvent",               header: "Mom Event",                                getter: () => checkedValue('momEvent') },
-  { id: "vegEvent",               header: "Veg Event",                                getter: () => checkedValue('vegEvent') },
-  { id: "flowerEvent",            header: "Flower Event",                             getter: () => checkedValue('flowerEvent') },
-  { id: "weightIncludingBin",     header: "Weight of Material Including Bin (Kilograms)", getter: () => val("#weightIncludingBin") },
-  { id: "numberOfBinsWeighed",    header: "Number of Bins Weighed",                   getter: () => val("#numberOfBinsWeighed") },
-  { id: "eventNotes",             header: "Event Notes (if applicable)",              getter: () => val("#eventNotes") }
+  { id: "submittedBy",             header: "Submitted by", getter: () => val("#submittedBy") },
+  { id: "eventDate",               header: "Event Date", getter: () => val("#eventDate") },
+  { id: "created",                 header: "Created", getter: createdGetter },
+  { id: "shift",                   header: "Which Shift?", getter: () => val("#shift") },
+  { id: "employeeCompletingEvent", header: "Employee Completing Event", getter: () => val("#employeeCompletingEvent") },
+  { id: "roomEventOccurredIn",     header: "Room Event occurred in", getter: () => val("#roomEventOccurredIn") },
+  { id: "roomHelper",              header: "RoomHelper", getter: computeRoomHelper },
+  { id: "actualGrams",             header: "Actual Weight of collected material (grams)", getter: computeActualGrams },
+  { id: "momEvent",                header: "Mom Event", getter: () => checkedValue('momEvent') },
+  { id: "vegEvent",                header: "Veg Event", getter: () => checkedValue('vegEvent') },
+  { id: "flowerEvent",             header: "Flower Event", getter: () => checkedValue('flowerEvent') },
+  { id: "eventNotes",              header: "Event Notes (if applicable)", getter: () => val("#eventNotes") },
+  { id: "weightIncludingBin",      header: "Weight of material including bin (Kilograms)", getter: () => fmtNumOrBlank(val("#weightIncludingBin")) },
+  { id: "numberOfBinsWeighed",     header: "Number of bins weighed", getter: () => fmtNumOrBlank(val("#numberOfBinsWeighed")) },
+  { id: "kgToG",                   header: "Kilograms to Grams Conversion", getter: computeKgToG }
 ];
 
 /* =======================
-   LOGIN & INIT (OG semantics)
+   LOGIN & INIT (UNTOUCHED)
    ======================= */
 function login(){
   try {
@@ -322,7 +337,8 @@ function initializeApp(){
 
   // Show/hide event pickers based on room
   const roomSel = document.getElementById('roomEventOccurredIn');
-  roomSel.addEventListener('change', showEventField);
+  roomSel.addEventListener('change', () => { showEventField(); updateRoomHelperPreview(); });
+  updateRoomHelperPreview();
 
   // Clear dependent fields when container is hidden
   hideEventFields();
@@ -348,6 +364,7 @@ function saveConfig(){
   applyListToForm('names', names);
   applyListToForm('rooms', rooms);
 
+  updateRoomHelperPreview();
   closeConfig();
 }
 
@@ -369,7 +386,6 @@ function applyListToForm(kind, items){
     return;
   }
 }
-
 function loadSettingsIntoFormLists(){
   const names = JSON.parse(localStorage.getItem(NAMES_KEY) || '[]');
   const rooms = JSON.parse(localStorage.getItem(ROOMS_KEY) || JSON.stringify(DEFAULT_ROOMS));
@@ -404,6 +420,47 @@ function hideEventFields(){
 }
 
 /* =======================
+   DERIVED FIELD COMPUTATIONS
+   ======================= */
+function updateRoomHelperPreview(){
+  const rh = computeRoomHelper();
+  const box = $('#roomHelperPreview');
+  if (box) box.value = rh;
+}
+function computeRoomHelper(){
+  const room = val('#roomEventOccurredIn').trim();
+  if (!room) return '';
+  const firstWord = room.split(/\s+/)[0] || '';
+  return firstWord;
+}
+function computeKgToG(){
+  const kg = parseFloat(val('#weightIncludingBin'));
+  if (Number.isNaN(kg)) return '';
+  const grams = kg * 999.99; // per spec
+  return fmtNumber(grams);
+}
+function computeActualGrams(){
+  const kg = parseFloat(val('#weightIncludingBin'));
+  const bins = parseFloat(val('#numberOfBinsWeighed'));
+  const haveKg = !Number.isNaN(kg);
+  const haveBins = !Number.isNaN(bins);
+  if (!haveKg) return '';
+  const kgToG = kg * 999.99;
+  if (!haveBins) return ''; // show blank unless both present
+  const net = kgToG - (bins * 3760.89);
+  return fmtNumber(net);
+}
+// Immutable Created: new on create; preserved on edit
+function createdGetter(){
+  const editIdx = parseInt($('#editingRowIndex').value, 10);
+  if (Number.isInteger(editIdx) && editIdx >= 0){
+    // keep existing
+    return $('#createdStore').value || '';
+  }
+  return new Date().toLocaleString(); // local timestamp on create
+}
+
+/* =======================
    ADD / EDIT / DELETE / SAVE
    ======================= */
 function submitForm(){
@@ -412,20 +469,23 @@ function submitForm(){
 
   if (Number.isInteger(editIdx) && editIdx >= 0){
     const tr = tbody.rows[editIdx]; if(!tr) return;
-    COLUMNS.forEach((col, i)=>{ tr.cells[i+1].textContent = col.getter(); });
+    // Recompute all columns EXCEPT Created (keep immutable)
+    COLUMNS.forEach((col, i)=>{
+      if (col.id === 'created') return; // preserve
+      tr.cells[i+1].textContent = col.getter();
+    });
   } else {
     const tr = tbody.insertRow();
     const act = tr.insertCell();
     act.innerHTML = `<span class="action-btn edit-btn" title="Edit" onclick="startEdit(this)">✏️</span>`+
                     `<span class="action-btn delete-btn" title="Delete" onclick="deleteRow(this)">🗑️</span>`;
-    for (const col of COLUMNS){ const c = tr.insertCell(); c.textContent = col.getter(); }
+    for (const col of COLUMNS){
+      const c = tr.insertCell(); c.textContent = col.getter();
+    }
   }
 
   saveTableToStorage();
-  $('#mainForm').reset();
-  $('#editingRowIndex').value = -1;
-  $('#submitBtn').textContent = 'Submit';
-  $('#cancelEditBtn').classList.add('hidden');
+  resetFormState();
   hideEventFields();
 }
 
@@ -435,37 +495,55 @@ function startEdit(btn){
   $('#editingRowIndex').value = idx;
 
   const cells = Array.from(tr.cells).slice(1); // skip Action
-  COLUMNS.forEach((col, i)=>populateFieldForEdit(col, cells[i].textContent));
+
+  // hydrate Created store so it's preserved
+  const createdCellIndex = COLUMNS.findIndex(c=>c.id==='created');
+  $('#createdStore').value = createdCellIndex >= 0 ? (cells[createdCellIndex].textContent || '') : '';
+
+  // Populate editable inputs (skip derived)
+  const map = {};
+  COLUMNS.forEach((c, i)=>{ map[c.id] = cells[i].textContent; });
+
+  setIfExists('submittedBy',            map.submittedBy);
+  setIfExists('eventDate',              map.eventDate);
+  setIfExists('shift',                  map.shift);
+  setIfExists('employeeCompletingEvent',map.employeeCompletingEvent);
+  setIfExists('roomEventOccurredIn',    map.roomEventOccurredIn);
 
   // ensure proper event panel is visible for existing room
   showEventField();
+
+  // set radios
+  setRadio('momEvent',    map.momEvent);
+  setRadio('vegEvent',    map.vegEvent);
+  setRadio('flowerEvent', map.flowerEvent);
+
+  // numeric inputs should be de-formatted back to raw if possible
+  setIfExists('weightIncludingBin', unfmt(map.weightIncludingBin));
+  setIfExists('numberOfBinsWeighed', unfmt(map.numberOfBinsWeighed));
+  setIfExists('eventNotes',          map.eventNotes);
+
+  updateRoomHelperPreview();
 
   $('#submitBtn').textContent = 'Save Changes';
   $('#cancelEditBtn').classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function populateFieldForEdit(col, value){
-  const id = col.id;
-  if(id === 'momEvent' || id === 'vegEvent' || id === 'flowerEvent'){
-    document.querySelectorAll(`input[name="${id}"]`).forEach(r=> r.checked = (r.value === (value || '')));
-    return;
-  }
-  const el = document.getElementById(id); if(!el) return;
-  el.value = value || '';
-}
-
-function cancelEdit(){
-  $('#mainForm').reset();
-  $('#editingRowIndex').value = -1;
-  $('#submitBtn').textContent = 'Submit';
-  $('#cancelEditBtn').classList.add('hidden');
-  hideEventFields();
-}
+function cancelEdit(){ resetFormState(); hideEventFields(); }
 
 function deleteRow(btn){
   const tr = btn.closest('tr'); if(!tr) return; tr.remove();
   saveTableToStorage();
+}
+
+function resetFormState(){
+  $('#mainForm').reset();
+  $('#editingRowIndex').value = -1;
+  $('#createdStore').value = '';
+  $('#submitBtn').textContent = 'Submit';
+  $('#cancelEditBtn').classList.add('hidden');
+  updateRoomHelperPreview();
 }
 
 /* =======================
@@ -494,7 +572,7 @@ function exportToCSV(){
   const rows = JSON.parse(localStorage.getItem(TABLE_KEY)||'[]');
   if(!rows.length){ alert('No data to export.'); return; }
 
-  const headers = COLUMNS.map(c=>c.header);
+  const headers = COLUMNS.map(c=>c.header); // exact names/order
   const csv = [ headers.map(h=>csvEscape(h)).join(','), ...rows.map(r=>r.map(v=>csvEscape(v)).join(',')) ].join('\n');
 
   const user = localStorage.getItem(USER_KEY) || 'user';
@@ -513,9 +591,14 @@ function csvEscape(v){ if(v==null) v=""; v=String(v); return /[",\n]/.test(v) ? 
    ======================= */
 function $(sel){ return document.querySelector(sel); }
 function val(sel){ const el = $(sel); return el ? (el.value ?? '') : ''; }
+function setIfExists(id, v){ const el = document.getElementById(id); if(el!=null) el.value = v ?? ''; }
+function setRadio(name, v){ document.querySelectorAll(`input[name="${name}"]`).forEach(r=> r.checked = (r.value === (v||''))); }
 function uniquePreserveOrder(arr){ const seen=new Set(), out=[]; for(const v of arr){ if(!seen.has(v)){ seen.add(v); out.push(v); } } return out; }
 function parseList(text){ return text.split(/,|\n/).map(s=>s.trim()).filter(Boolean); }
 function checkedValue(name){ const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
+function fmtNumber(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtNumOrBlank(v){ const n = parseFloat(String(v).replace(/,/g,'')); return Number.isNaN(n) ? '' : fmtNumber(n); }
+function unfmt(v){ if (!v) return ''; return String(v).replace(/,/g,''); }
 </script>
 </body>
 </html>
