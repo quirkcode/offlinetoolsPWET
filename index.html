@@ -1,602 +1,521 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plant Work Events Offline Tool</title>
-    <style>
-    <!-- redeploy trigger -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plant Work Events Offline Tool</title>
+  <style>
+    /* Base */
+    body { font-family: Arial, sans-serif; margin: 20px; font-size: 10px; }
+    .form-title { text-align:center; font-weight:700; font-size:2em; margin-bottom:1em; color:#333 }
+    .container { display:flex; flex-wrap:nowrap; gap:20px; }
+    .form-container { display:flex; flex-direction:column; width:20%; }
+    .form-columns { display:flex; justify-content:flex-start; }
+    .form-column { width:90%; }
+    .table-container { width:80%; overflow-x:auto; position:relative; }
+    form { padding:1em; border:2px solid #ccc; border-radius:2em; }
+    div + div { margin-top:1em; }
+    label { display:block; margin-bottom:.5em; color:#333 }
+    input, textarea, select { width:60%; padding:.5em; border:1px solid #ccc; border-radius:4px; }
+    input[readonly]{ background:#f0f0f0; }
+    button { padding:.7em; color:#fff; background:#007BFF; border:none; border-radius:4px; cursor:pointer; }
+    button:hover { background:#0056b3; }
+    table { width:100%; border-collapse:collapse; }
+    table, th, td { border:1px solid #ccc; }
+    th, td { padding:.5em; text-align:left; }
 
-#loginForm {
-    display: flex;
-    flex-direction: column;
-    width: 300px;
-    margin: 100px auto; /* Centering the form */
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    padding: 20px;
-}
+    .hidden { display:none !important; }
+    .muted { color:#666; font-style:italic; }
+    .inline { display:inline-block; }
+    .action-btn { cursor:pointer; font-weight:bold; user-select:none; }
+    .delete-btn { color:red; }
+    .edit-btn { color:#007BFF; margin-right:.5em; }
 
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            font-size: 10px;
-        }
-        .form-title {
-            text-align: center;
-            font-weight: bold;
-            font-size: 2em;
-            margin-bottom: 1em;
-            color: #333333;
-        }
-        .container {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 20px;
-        }
-        .form-container {
-            display: flex;
-            flex-direction: column;
-            width: 20%;
-        }
-        .form-columns {
-            display: flex;
-            justify-content: Left;
-        }
-        .form-column {
-            width: 90%;
-        }
-        .table-container {
-            width: 80%;
-            overflow-x: auto;
-        }
-        form {
-            padding: 1em;
-            border: 2px solid #ccc;
-            border-radius: 2em;
-        }
-        div + div {
-            margin-top: 1em;
-        }
-        label {
-            display: block;
-            margin-bottom: .5em;
-            color: #333333;
-        }
-        input, textarea, select {
-            width: 60%;
-            padding: .5em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        input[readonly] {
-            background-color: #f0f0f0;
-        }
-        button {
-            padding: 0.7em;
-            color: #fff;
-            background-color: #007BFF;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid #ccc;
-        }
-        th, td {
-            padding: 0.5em;
-            text-align: left;
-        }
-        .settings {
-            margin-top: 2em;
-            border-top: 1px solid #ccc;
-            padding-top: 1em;
-        }
-        .hidden {
-            display: none;
-        }
-        .delete-btn {
-            cursor: pointer;
-            color: red;
-            font-weight: bold;
-        }
+    /* Login */
+    #loginForm { display:flex; flex-direction:column; width:300px; margin:0 auto; border:2px solid #ccc; border-radius:10px; padding:20px; }
+    #loginForm input { margin-bottom:10px; }
 
-        .table-container {
-            position: relative;
-        }
+    /* Radio groups */
+    .radio-group { display:flex; align-items:center; gap:1em; }
+    .radio-label { display:flex; align-items:center; gap:.5em; white-space:nowrap; height:1.5em; }
 
-        .export-btn-container {
-            text-align: right;
-            margin-top: 10px;
-        }
-
-        .export-btn {
-            padding: 0.7em;
-            color: #fff;
-            background-color: #007BFF;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .export-btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    /* Configure modal */
+    .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,.35);
+      display:flex; align-items:center; justify-content:center; z-index:9999; }
+    .modal-overlay.hidden { display:none !important; }
+    .modal-card { background:#fff; border-radius:12px; padding:16px; width:min(900px,92vw); border:1px solid #ccc; }
+    .modal-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+    .modal-grid textarea { width:100%; min-height:90px; resize:vertical; }
+  </style>
 </head>
 <body>
 
+<!-- LOGIN (OG-stable) -->
 <div id="loginScreen">
-    <form id="loginForm">
-        <h2>Login</h2>
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required>
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-        <button type="button" onclick="login()">Login</button>
-    </form>
+  <form id="loginForm" onsubmit="event.preventDefault(); login();">
+    <h2>Login</h2>
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required autocomplete="username" />
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required autocomplete="current-password"/>
+    <label class="inline" style="margin-top:6px;"><input type="checkbox" id="showPw"> Show password</label>
+    <div class="muted" style="margin-top:4px;">Hint: default password is <code>PWET</code>.</div>
+    <button type="submit">Login</button>
+  </form>
 </div>
 
+<!-- APP -->
 <div id="mainContent" style="display:none;">
-    <h1 class="form-title">Plant Work Events Offline Tool</h1>
-    <div class="container">
-        <div class="form-container">
-            <div class="form-columns">
-                <div class="form-column">
-                    <form id="mainForm">
-                        <div>
-                            <label for="submittedBy">Submitted by</label>
-                            <select id="submittedBy" name="submittedBy" required>
-                                <option value="" selected></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="eventDate">Event Date</label>
-                            <input type="date" id="eventDate" name="eventDate" required>
-                        </div>
-                        <div>
-                            <label for="shift">Which Shift?</label>
-                            <select id="shift" name="shift" required>
-                                <option value="" selected></option>
-                                <option value="1st Shift">1st Shift</option>
-                                <option value="2nd Shift">2nd Shift</option>
-                                <option value="3rd Shift">3rd Shift</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="employeeCompletingEvent">Employee Completing Event</label>
-                            <select id="employeeCompletingEvent" name="employeeCompletingEvent" required>
-                                <option value="" selected></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="roomEventOccurredIn">Room Event Occurred in</label>
-                            <select id="roomEventOccurredIn" name="roomEventOccurredIn" onchange="showEventField()" required>
-                                <option value="" selected></option>
-                                <option value="Mom 1">Mom 1</option>
-                                <option value="Mom 2">Mom 2</option>
-                                <option value="Mom 3">Mom 3</option>
-                                <option value="Veg 1">Veg 1</option>
-                                <option value="Veg 2">Veg 2</option>
-                                <option value="Veg 3">Veg 3</option>
-                                <option value="Veg 4">Veg 4</option>
-                                <option value="Veg 5">Veg 5</option>
-                                <option value="Veg 6">Veg 6</option>
-                                <option value="Flower 1">Flower 1</option>
-                                <option value="Flower 2">Flower 2</option>
-                                <option value="Flower 3">Flower 3</option>
-                                <option value="Flower 4">Flower 4</option>
-                                <option value="Flower 5">Flower 5</option>
-                                <option value="Flower 6">Flower 6</option>
-                                <option value="Flower 7">Flower 7</option>
-                                <option value="Flower 8">Flower 8</option>
-                                <option value="Flower 9">Flower 9</option>
-                                <option value="Flower 10">Flower 10</option>
-                                <option value="Flower 11">Flower 11</option>
-                                <option value="Flower 12">Flower 12</option>
-                                <option value="Flower 13">Flower 13</option>
-                                <option value="Flower 14">Flower 14</option>
-                                <option value="Flower 15">Flower 15</option>
-                                <option value="Flower 16">Flower 16</option>
-                                <option value="Flower 17">Flower 17</option>
-                                <option value="Flower 18">Flower 18</option>
-                            </select>
-                        </div>
-                        <div id="momEventContainer" class="hidden">
-                            <label for="momEvent">Mom Event</label>
-                            <select id="momEvent" name="momEvent">
-                                <option value="1st topping">1st topping</option>
-                                <option value="2nd topping">2nd topping</option>
-                                <option value="Maintenance Topping">Maintenance Topping</option>
-                                <option value="Defoliation">Defoliation</option>
-                                <option value="Prune/Skirt">Prune/Skirt</option>
-                            </select>
-                        </div>
-                        <div id="vegEventContainer" class="hidden">
-                            <label for="vegEvent">Veg Event</label>
-                            <select id="vegEvent" name="vegEvent">
-                                <option value="Topping">Topping</option>
-                                <option value="Prune/Skirt">Prune/Skirt</option>
-                            </select>
-                        </div>
-                        <div id="flowerEventContainer" class="hidden">
-                            <label for="flowerEvent">Flower Event</label>
-                            <select id="flowerEvent" name="flowerEvent">
-                                <option value="Flower Topping">Flower Topping</option>
-                                <option value="21-Day Prune">21-Day Prune</option>
-                                <option value="42-Day Defol">42-Day Defol</option>
-                                <option value="Harvest defol">Harvest defol</option>
-                                <option value="Necrotic leaf Defol">Necrotic leaf Defol</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="weightIncludingBin">Weight of Material Including Bin (Kilograms)</label>
-                            <input type="number" id="weightIncludingBin" name="weightIncludingBin" required>
-                        </div>
-                        <div>
-                            <label for="numberOfBinsWeighed">Number of Bins Weighed</label>
-                            <input type="number" id="numberOfBinsWeighed" name="numberOfBinsWeighed" required>
-                        </div>
-                        <div>
-                            <label for="eventNotes">Event Notes (if applicable)</label>
-                            <textarea id="eventNotes" name="eventNotes"></textarea>
-                        </div>
-                        <div>
-                            <button type="button" onclick="addToTable()">Submit</button>
-                        </div>
-                    </form>
-                </div>
+  <h1 class="form-title">Plant Work Events Offline Tool</h1>
+
+  <!-- Controls -->
+  <div style="display:flex; justify-content:flex-end; gap:8px; margin:-10px 0 10px;">
+    <button type="button" onclick="openConfig()">Configure</button>
+    <button type="button" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <div class="form-container">
+      <div class="form-columns">
+        <div class="form-column">
+          <form id="mainForm" onsubmit="event.preventDefault(); submitForm();">
+            <!-- edit index -->
+            <input type="hidden" id="editingRowIndex" value="-1">
+
+            <div>
+              <label for="submittedBy">Submitted by</label>
+              <select id="submittedBy" name="submittedBy" required>
+                <option value="" selected></option>
+              </select>
             </div>
-        </div>
-        <div class="table-container">
-            <table id="dataTable">
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>Submitted by</th>
-                        <th>Event Date</th>
-                        <th>Which Shift?</th>
-                        <th>Employee Completing Event</th>
-                        <th>Room Event Occurred in</th>
-                        <th>Mom Event</th>
-                        <th>Veg Event</th>
-                        <th>Flower Event</th>
-                        <th>Weight of Material Including Bin (Kilograms)</th>
-                        <th>Number of Bins Weighed</th>
-                        <th>Event Notes (if applicable)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be inserted here -->
-                </tbody>
-            </table>
-            <div class="export-btn-container">
-                <button type="button" onclick="exportToCSV()">Export to Excel</button>
+
+            <div>
+              <label for="eventDate">Event Date</label>
+              <input type="date" id="eventDate" name="eventDate" required>
             </div>
+
+            <div>
+              <label for="shift">Which Shift?</label>
+              <select id="shift" name="shift" required>
+                <option value="" selected></option>
+                <option value="1st Shift">1st Shift</option>
+                <option value="2nd Shift">2nd Shift</option>
+                <option value="3rd Shift">3rd Shift</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="employeeCompletingEvent">Employee Completing Event</label>
+              <select id="employeeCompletingEvent" name="employeeCompletingEvent" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="roomEventOccurredIn">Room Event Occurred in</label>
+              <select id="roomEventOccurredIn" name="roomEventOccurredIn" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <!-- MOM -->
+            <div id="momEventContainer" class="hidden">
+              <label>Mom Event</label>
+              <div class="radio-group" role="radiogroup" aria-label="Mom Event">
+                <label class="radio-label"><input type="radio" name="momEvent" value="1st topping"> 1st topping</label>
+                <label class="radio-label"><input type="radio" name="momEvent" value="2nd topping"> 2nd topping</label>
+                <label class="radio-label"><input type="radio" name="momEvent" value="Maintenance Topping"> Maintenance Topping</label>
+                <label class="radio-label"><input type="radio" name="momEvent" value="Defoliation"> Defoliation</label>
+                <label class="radio-label"><input type="radio" name="momEvent" value="Prune/Skirt"> Prune/Skirt</label>
+              </div>
+            </div>
+
+            <!-- VEG -->
+            <div id="vegEventContainer" class="hidden">
+              <label>Veg Event</label>
+              <div class="radio-group" role="radiogroup" aria-label="Veg Event">
+                <label class="radio-label"><input type="radio" name="vegEvent" value="Topping"> Topping</label>
+                <label class="radio-label"><input type="radio" name="vegEvent" value="Prune/Skirt"> Prune/Skirt</label>
+              </div>
+            </div>
+
+            <!-- FLOWER -->
+            <div id="flowerEventContainer" class="hidden">
+              <label>Flower Event</label>
+              <div class="radio-group" role="radiogroup" aria-label="Flower Event">
+                <label class="radio-label"><input type="radio" name="flowerEvent" value="Flower Topping"> Flower Topping</label>
+                <label class="radio-label"><input type="radio" name="flowerEvent" value="21-Day Prune"> 21-Day Prune</label>
+                <label class="radio-label"><input type="radio" name="flowerEvent" value="42-Day Defol"> 42-Day Defol</label>
+                <label class="radio-label"><input type="radio" name="flowerEvent" value="Harvest defol"> Harvest defol</label>
+                <label class="radio-label"><input type="radio" name="flowerEvent" value="Necrotic leaf Defol"> Necrotic leaf Defol</label>
+              </div>
+            </div>
+
+            <div>
+              <label for="weightIncludingBin">Weight of Material Including Bin (Kilograms)</label>
+              <input type="number" id="weightIncludingBin" name="weightIncludingBin" required>
+            </div>
+
+            <div>
+              <label for="numberOfBinsWeighed">Number of Bins Weighed</label>
+              <input type="number" id="numberOfBinsWeighed" name="numberOfBinsWeighed" required>
+            </div>
+
+            <div>
+              <label for="eventNotes">Event Notes (if applicable)</label>
+              <textarea id="eventNotes" name="eventNotes" rows="3" style="height:3.5em;"></textarea>
+            </div>
+
+            <div>
+              <button id="submitBtn" type="submit">Submit</button>
+              <button id="cancelEditBtn" type="button" class="hidden" onclick="cancelEdit()">Cancel Edit</button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
-    <div class="settings">
-        <div>
-            <label for="fieldSelect">Select Field to Update</label>
-            <select id="fieldSelect">
-                <option value="names">Names</option>
-            </select>
-        </div>
-        <div>
-            <label for="fieldValues">Enter Values (comma-separated or line-separated)</label>
-            <textarea id="fieldValues" placeholder="e.g. Cloner, Cutter, Trimmer or Cloner&#10;Cutter&#10;Trimmer"></textarea>
-        </div>
-        <div>
-            <button type="button" onclick="updateField()">Update Field</button>
-        </div>
+
+    <div class="table-container">
+      <table id="dataTable" aria-label="Submitted rows">
+        <thead>
+          <tr id="headerRow">
+            <th>Action</th>
+            <th>Submitted by</th>
+            <th>Event Date</th>
+            <th>Which Shift?</th>
+            <th>Employee Completing Event</th>
+            <th>Room Event Occurred in</th>
+            <th>Mom Event</th>
+            <th>Veg Event</th>
+            <th>Flower Event</th>
+            <th>Weight of Material Including Bin (Kilograms)</th>
+            <th>Number of Bins Weighed</th>
+            <th>Event Notes (if applicable)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div style="text-align:right; margin-top:10px; display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+        <label class="inline"><input type="checkbox" id="clearAfterExport" checked /> Clear after export</label>
+        <button type="button" onclick="exportToCSV()">Export to Excel</button>
+      </div>
     </div>
+  </div>
+
+  <!-- CONFIG MODAL -->
+  <div id="configOverlay" class="hidden modal-overlay" role="dialog" aria-modal="true" aria-labelledby="configTitle">
+    <div class="modal-card">
+      <h2 id="configTitle" style="margin-top:0;">Configure Dropdown Lists</h2>
+      <p class="muted">Enter values comma- or line-separated. Rooms default to full Mom/Veg/Flower set if blank.</p>
+
+      <div class="modal-grid">
+        <label>Names
+          <textarea id="cfg_names" placeholder="John Doe, Jane Smith"></textarea>
+        </label>
+        <label>Rooms
+          <textarea id="cfg_rooms" placeholder="Mom 1, Mom 2, … or Veg 1… Flower 18"></textarea>
+        </label>
+      </div>
+
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button type="button" onclick="closeConfig()">Cancel</button>
+        <button type="button" onclick="saveConfig()">Save & Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- SINGLE SCRIPT BLOCK -->
 <script>
-    function login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        if (password === "PWET") {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            localStorage.setItem('username', username);
-        } else {
-            alert('Incorrect password. Please try again.');
-        }
+/* =======================
+   CONFIG & KEYS
+   ======================= */
+const PASSWORD = "PWET";                       // OG-stable
+const APP_KEY = "pwet.offline";                // namespace
+const TABLE_KEY = `${APP_KEY}.table`;
+const USER_KEY  = `${APP_KEY}.user`;
+const NAMES_KEY = `${APP_KEY}.names`;
+const ROOMS_KEY = `${APP_KEY}.rooms`;
+
+/* =======================
+   DEFAULTS
+   ======================= */
+const DEFAULT_ROOMS = [
+  ...Array.from({length:3}, (_,i)=>`Mom ${i+1}`),
+  ...Array.from({length:6}, (_,i)=>`Veg ${i+1}`),
+  ...Array.from({length:18},(_,i)=>`Flower ${i+1}`)
+];
+
+/* =======================
+   TABLE COLUMN SCHEMA
+   (must match <thead>)
+   ======================= */
+const COLUMNS = [
+  { id: "submittedBy",            header: "Submitted by",                             getter: () => val("#submittedBy") },
+  { id: "eventDate",              header: "Event Date",                               getter: () => val("#eventDate") },
+  { id: "shift",                  header: "Which Shift?",                             getter: () => val("#shift") },
+  { id: "employeeCompletingEvent",header: "Employee Completing Event",                getter: () => val("#employeeCompletingEvent") },
+  { id: "roomEventOccurredIn",    header: "Room Event Occurred in",                   getter: () => val("#roomEventOccurredIn") },
+  { id: "momEvent",               header: "Mom Event",                                getter: () => checkedValue('momEvent') },
+  { id: "vegEvent",               header: "Veg Event",                                getter: () => checkedValue('vegEvent') },
+  { id: "flowerEvent",            header: "Flower Event",                             getter: () => checkedValue('flowerEvent') },
+  { id: "weightIncludingBin",     header: "Weight of Material Including Bin (Kilograms)", getter: () => val("#weightIncludingBin") },
+  { id: "numberOfBinsWeighed",    header: "Number of Bins Weighed",                   getter: () => val("#numberOfBinsWeighed") },
+  { id: "eventNotes",             header: "Event Notes (if applicable)",              getter: () => val("#eventNotes") }
+];
+
+/* =======================
+   LOGIN & INIT (OG semantics)
+   ======================= */
+function login(){
+  try {
+    const username = (document.getElementById("username")?.value || "").trim();
+    const pwInput  = (document.getElementById("password")?.value || "").trim();
+    if (pwInput === PASSWORD) {
+      localStorage.setItem(USER_KEY, username || "user");
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("mainContent").style.display = "block";
+      initializeApp();
+    } else {
+      alert("Incorrect password. Please try again.");
     }
-
-    function updateField() {
-        const fieldSelect = document.getElementById('fieldSelect').value;
-        const fieldValues = document.getElementById('fieldValues').value.split(/,|\n/).map(value => value.trim()).filter(value => value);
-
-        if (fieldSelect === "names") {
-            const nameFields = ["submittedBy", "employeeCompletingEvent"];
-            nameFields.forEach(field => {
-                const selectElement = document.getElementById(field);
-                selectElement.innerHTML = ''; // Clear existing options
-
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = '';
-                defaultOption.selected = true;
-                selectElement.appendChild(defaultOption);
-
-                fieldValues.forEach(value => {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = value;
-                    selectElement.appendChild(option);
-                });
-
-                // Set the value to empty string to clear the field
-                selectElement.value = '';
-            });
-        } else {
-            const selectElement = document.getElementById(fieldSelect);
-            selectElement.innerHTML = ''; // Clear existing options
-
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = '';
-            defaultOption.selected = true;
-            selectElement.appendChild(defaultOption);
-
-            fieldValues.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                selectElement.appendChild(option);
-            });
-
-            // Set the value to empty string to clear the field
-            selectElement.value = '';
-        }
-
-        // Save to localStorage
-        localStorage.setItem(fieldSelect, JSON.stringify(fieldValues));
-
-        document.getElementById('fieldValues').value = ''; // Clear the input field
-        alert(`${fieldSelect} updated successfully!`);
-    }
-
-    function addToTable() {
-        const form = document.getElementById('mainForm');
-        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        const newRow = table.insertRow();
-        
-        const deleteCell = newRow.insertCell();
-        deleteCell.innerHTML = '<span class="delete-btn" onclick="deleteRow(this)">🗑️</span>';
-        
-        const fields = [
-            'submittedBy', 'eventDate', 'shift', 'employeeCompletingEvent', 'roomEventOccurredIn',
-            'momEvent', 'vegEvent', 'flowerEvent', 'weightIncludingBin', 'numberOfBinsWeighed', 'eventNotes'
-        ];
-        
-        fields.forEach(field => {
-            const cell = newRow.insertCell();
-            const inputField = form.querySelector(`[name="${field}"]`);
-            cell.textContent = inputField ? inputField.value : '';
-        });
-
-        form.reset();
-        resetSelectFields();
-        hideEventFields();
-
-        saveTableData(); // Save the table data to localStorage
-    }
-
-    function deleteRow(btn) {
-        const row = btn.parentNode.parentNode;
-        row.parentNode.removeChild(row);
-        saveTableData();
-    }
-
-    function resetSelectFields() {
-        const selectFields = document.querySelectorAll('select');
-        selectFields.forEach(select => {
-            select.value = "";
-        });
-    }
-
-function showEventField() {
-    const room = document.getElementById('roomEventOccurredIn').value;
-    hideEventFields();
-    clearEventFields();
-
-    if (room.startsWith('Mom')) {
-        document.getElementById('momEventContainer').classList.remove('hidden');
-    } else if (room.startsWith('Veg')) {
-        document.getElementById('vegEventContainer').classList.remove('hidden');
-    } else if (room.startsWith('Flower')) {
-        document.getElementById('flowerEventContainer').classList.remove('hidden');
-    }
+  } catch (err) { console.error("Login error:", err); alert("Login error. Check console."); }
+}
+function logout(){
+  localStorage.removeItem(USER_KEY);
+  document.getElementById("loginScreen").style.display = "block";
+  document.getElementById("mainContent").style.display = "none";
+  document.getElementById("loginForm")?.reset();
 }
 
-function clearEventFields() {
-    document.getElementById('momEvent').value = '';
-    document.getElementById('vegEvent').value = '';
-    document.getElementById('flowerEvent').value = '';
+// Show/hide password toggle + auto-login
+document.addEventListener("DOMContentLoaded", () => {
+  const pwField = document.getElementById('password');
+  const showPw = document.getElementById('showPw');
+  if (showPw && pwField) showPw.addEventListener('change', (e)=>{ pwField.type = e.target.checked ? 'text' : 'password'; });
+
+  const user = localStorage.getItem(USER_KEY);
+  if (user) {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("mainContent").style.display = "block";
+    try { initializeApp(); } catch(e){ console.error("Init error:", e); }
+  } else {
+    document.getElementById("loginScreen").style.display = "block";
+    document.getElementById("mainContent").style.display = "none";
+  }
+});
+
+// Enter key submits on login screen
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
+    e.preventDefault(); login();
+  }
+});
+
+/* =======================
+   APP INIT
+   ======================= */
+function initializeApp(){
+  loadSettingsIntoFormLists();
+  loadTableFromStorage();
+
+  // Show/hide event pickers based on room
+  const roomSel = document.getElementById('roomEventOccurredIn');
+  roomSel.addEventListener('change', showEventField);
+
+  // Clear dependent fields when container is hidden
+  hideEventFields();
 }
 
+/* =======================
+   CONFIG MODAL
+   ======================= */
+function openConfig(){
+  $('#cfg_names').value = (JSON.parse(localStorage.getItem(NAMES_KEY) || '[]')).join('\n');
+  $('#cfg_rooms').value = (JSON.parse(localStorage.getItem(ROOMS_KEY) || JSON.stringify(DEFAULT_ROOMS))).join('\n');
+  const ov = $('#configOverlay'); ov.classList.remove('hidden'); ov.style.display='flex';
+}
+function closeConfig(){ const ov = $('#configOverlay'); ov.classList.add('hidden'); ov.style.display='none'; }
+function saveConfig(){
+  const names = uniquePreserveOrder(parseList($('#cfg_names').value));
+  let rooms   = uniquePreserveOrder(parseList($('#cfg_rooms').value));
+  if (!rooms.length) rooms = DEFAULT_ROOMS.slice();
 
-    function hideEventFields() {
-        document.getElementById('momEventContainer').classList.add('hidden');
-        document.getElementById('vegEventContainer').classList.add('hidden');
-        document.getElementById('flowerEventContainer').classList.add('hidden');
-    }
+  localStorage.setItem(NAMES_KEY, JSON.stringify(names));
+  localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms));
 
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSettings();
-        loadTableData();
-        if (localStorage.getItem('username')) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-        } else {
-            document.getElementById('loginScreen').style.display = 'block';
-            document.getElementById('mainContent').style.display = 'none';
-        }
-    });
+  applyListToForm('names', names);
+  applyListToForm('rooms', rooms);
 
-    function loadSettings() {
-        const fieldSelect = document.getElementById('fieldSelect').value;
-        const savedNames = localStorage.getItem('names');
-        const savedStrains = localStorage.getItem('strain');
-        const savedRooms = localStorage.getItem('rooms');
+  closeConfig();
+}
 
-        if (savedNames) {
-            const nameFields = ["submittedBy", "employeeCompletingEvent"];
-            const fieldValues = JSON.parse(savedNames);
+/* =======================
+   FORM LIST POPULATION
+   ======================= */
+function applyListToForm(kind, items){
+  const addOptions = (selectEl, values) => {
+    if(!selectEl) return; selectEl.innerHTML='';
+    const def = document.createElement('option'); def.value=''; def.textContent=''; def.selected = true; selectEl.appendChild(def);
+    values.forEach(v=>{ const opt=document.createElement('option'); opt.value=v; opt.textContent=v; selectEl.appendChild(opt); });
+  };
+  if(kind==='names'){
+    ["submittedBy","employeeCompletingEvent"].forEach(id=>addOptions(document.getElementById(id), items));
+    return;
+  }
+  if(kind==='rooms'){
+    addOptions(document.getElementById('roomEventOccurredIn'), items);
+    return;
+  }
+}
 
-            nameFields.forEach(field => {
-                const selectElement = document.getElementById(field);
-                selectElement.innerHTML = ''; // Clear existing options
+function loadSettingsIntoFormLists(){
+  const names = JSON.parse(localStorage.getItem(NAMES_KEY) || '[]');
+  const rooms = JSON.parse(localStorage.getItem(ROOMS_KEY) || JSON.stringify(DEFAULT_ROOMS));
+  if(names.length) applyListToForm('names', names);
+  applyListToForm('rooms', rooms);
+}
 
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = '';
-                defaultOption.selected = true;
-                selectElement.appendChild(defaultOption);
+/* =======================
+   EVENT FIELD VISIBILITY
+   ======================= */
+function showEventField(){
+  const room = val('#roomEventOccurredIn');
+  hideEventFields();
+  clearEventFields();
+  if(!room) return;
+  if (room.startsWith('Mom')) {
+    document.getElementById('momEventContainer').classList.remove('hidden');
+  } else if (room.startsWith('Veg')) {
+    document.getElementById('vegEventContainer').classList.remove('hidden');
+  } else if (room.startsWith('Flower')) {
+    document.getElementById('flowerEventContainer').classList.remove('hidden');
+  }
+}
+function clearEventFields(){
+  document.querySelectorAll('input[name="momEvent"]').forEach(r=> r.checked = false);
+  document.querySelectorAll('input[name="vegEvent"]').forEach(r=> r.checked = false);
+  document.querySelectorAll('input[name="flowerEvent"]').forEach(r=> r.checked = false);
+}
+function hideEventFields(){
+  ['momEventContainer','vegEventContainer','flowerEventContainer']
+    .forEach(id=>document.getElementById(id).classList.add('hidden'));
+}
 
-                fieldValues.forEach(value => {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = value;
-                    selectElement.appendChild(option);
-                });
+/* =======================
+   ADD / EDIT / DELETE / SAVE
+   ======================= */
+function submitForm(){
+  const tbody = $('#dataTable tbody');
+  const editIdx = parseInt($('#editingRowIndex').value, 10);
 
-                // Set the value to empty string to clear the field
-                selectElement.value = '';
-            });
-        }
+  if (Number.isInteger(editIdx) && editIdx >= 0){
+    const tr = tbody.rows[editIdx]; if(!tr) return;
+    COLUMNS.forEach((col, i)=>{ tr.cells[i+1].textContent = col.getter(); });
+  } else {
+    const tr = tbody.insertRow();
+    const act = tr.insertCell();
+    act.innerHTML = `<span class="action-btn edit-btn" title="Edit" onclick="startEdit(this)">✏️</span>`+
+                    `<span class="action-btn delete-btn" title="Delete" onclick="deleteRow(this)">🗑️</span>`;
+    for (const col of COLUMNS){ const c = tr.insertCell(); c.textContent = col.getter(); }
+  }
 
-        if (savedStrains) {
-            const selectElement = document.getElementById('strain');
-            const fieldValues = JSON.parse(savedStrains);
-            selectElement.innerHTML = ''; // Clear existing options
+  saveTableToStorage();
+  $('#mainForm').reset();
+  $('#editingRowIndex').value = -1;
+  $('#submitBtn').textContent = 'Submit';
+  $('#cancelEditBtn').classList.add('hidden');
+  hideEventFields();
+}
 
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = '';
-            defaultOption.selected = true;
-            selectElement.appendChild(defaultOption);
+function startEdit(btn){
+  const tr = btn.closest('tr');
+  const idx = tr.rowIndex - 1; // minus header
+  $('#editingRowIndex').value = idx;
 
-            fieldValues.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                selectElement.appendChild(option);
-            });
+  const cells = Array.from(tr.cells).slice(1); // skip Action
+  COLUMNS.forEach((col, i)=>populateFieldForEdit(col, cells[i].textContent));
 
-            // Set the value to empty string to clear the field
-            selectElement.value = '';
-        }
+  // ensure proper event panel is visible for existing room
+  showEventField();
 
-        if (savedRooms) {
-            const selectElement = document.getElementById('roomEventOccurredIn');
-            const fieldValues = JSON.parse(savedRooms);
-            selectElement.innerHTML = ''; // Clear existing options
+  $('#submitBtn').textContent = 'Save Changes';
+  $('#cancelEditBtn').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = '';
-            defaultOption.selected = true;
-            selectElement.appendChild(defaultOption);
+function populateFieldForEdit(col, value){
+  const id = col.id;
+  if(id === 'momEvent' || id === 'vegEvent' || id === 'flowerEvent'){
+    document.querySelectorAll(`input[name="${id}"]`).forEach(r=> r.checked = (r.value === (value || '')));
+    return;
+  }
+  const el = document.getElementById(id); if(!el) return;
+  el.value = value || '';
+}
 
-            fieldValues.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                selectElement.appendChild(option);
-            });
+function cancelEdit(){
+  $('#mainForm').reset();
+  $('#editingRowIndex').value = -1;
+  $('#submitBtn').textContent = 'Submit';
+  $('#cancelEditBtn').classList.add('hidden');
+  hideEventFields();
+}
 
-            // Set the value to empty string to clear the field
-            selectElement.value = '';
-        }
-    }
+function deleteRow(btn){
+  const tr = btn.closest('tr'); if(!tr) return; tr.remove();
+  saveTableToStorage();
+}
 
-    function saveTableData() {
-        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        const rows = Array.from(table.rows);
-        const tableData = rows.map(row => {
-            return Array.from(row.cells).slice(1).map(cell => cell.textContent); // Exclude the first cell (trash icon)
-        });
-        localStorage.setItem('tableData', JSON.stringify(tableData));
-    }
+/* =======================
+   STORAGE
+   ======================= */
+function saveTableToStorage(){
+  const rows = [...$('#dataTable tbody').rows].map(r=>[...r.cells].slice(1).map(td=>td.textContent));
+  localStorage.setItem(TABLE_KEY, JSON.stringify(rows));
+}
+function loadTableFromStorage(){
+  const tbody = $('#dataTable tbody'); tbody.innerHTML="";
+  const rows = JSON.parse(localStorage.getItem(TABLE_KEY) || '[]');
+  for(const data of rows){
+    const tr = tbody.insertRow();
+    const act = tr.insertCell();
+    act.innerHTML = `<span class=\"action-btn edit-btn\" title=\"Edit\" onclick=\"startEdit(this)\">✏️</span>`+
+                    `<span class=\"action-btn delete-btn\" title=\"Delete\" onclick=\"deleteRow(this)\">🗑️</span>`;
+    for(const v of data){ const c = tr.insertCell(); c.textContent = v; }
+  }
+}
 
-    function loadTableData() {
-        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        const tableData = JSON.parse(localStorage.getItem('tableData') || '[]');
-        tableData.forEach(rowData => {
-            const newRow = table.insertRow();
-            const deleteCell = newRow.insertCell();
-            deleteCell.innerHTML = '<span class="delete-btn" onclick="deleteRow(this)">🗑️</span>';
-            rowData.forEach(cellData => {
-                const cell = newRow.insertCell();
-                cell.textContent = cellData;
-            });
-        });
-    }
+/* =======================
+   EXPORT
+   ======================= */
+function exportToCSV(){
+  const rows = JSON.parse(localStorage.getItem(TABLE_KEY)||'[]');
+  if(!rows.length){ alert('No data to export.'); return; }
 
-    function exportToCSV() {
-        const tableData = JSON.parse(localStorage.getItem('tableData') || '[]');
-        if (tableData.length === 0) {
-            alert('No data to export.');
-            return;
-        }
+  const headers = COLUMNS.map(c=>c.header);
+  const csv = [ headers.map(h=>csvEscape(h)).join(','), ...rows.map(r=>r.map(v=>csvEscape(v)).join(',')) ].join('\n');
 
-        const headers = [
-            'Submitted by', 'Event Date', 'Which Shift?', 'Employee Completing Event', 'Room Event Occurred in',
-            'Mom Event', 'Veg Event', 'Flower Event', 'Weight of Material Including Bin (Kilograms)', 
-            'Number of Bins Weighed', 'Event Notes (if applicable)'
-        ];
+  const user = localStorage.getItem(USER_KEY) || 'user';
+  const now = new Date();
+  const name = `${user}_${now.toISOString().replace(/[:T]/g,'-').split('.')[0]}_PWET.csv`;
 
-        const csvContent = [
-            headers.join(','), // Add the headers
-            ...tableData.map(row => row.map(cell => `"${cell}"`).join(',')) // Add the rows
-        ].join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = name; document.body.appendChild(link); link.click(); document.body.removeChild(link);
 
-        // Get username from localStorage
-        const username = localStorage.getItem('username') || 'user';
+  if($('#clearAfterExport')?.checked){ localStorage.removeItem(TABLE_KEY); $('#dataTable tbody').innerHTML=''; }
+}
+function csvEscape(v){ if(v==null) v=""; v=String(v); return /[",\n]/.test(v) ? `"${v.replace(/"/g,'""')}"` : v; }
 
-        // Get current date and time
-        const now = new Date();
-        const formattedDate = now.toISOString().split('T')[0];
-        const formattedTime = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-
-        // Create the file name
-        const fileName = `${username}_${formattedDate}_${formattedTime}_PWET.csv`;
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', fileName);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Clear the data table after download
-        clearTableData();
-    }
-
-    function clearTableData() {
-        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        while (table.firstChild) {
-            table.removeChild(table.firstChild);
-        }
-        localStorage.removeItem('tableData');
-    }
+/* =======================
+   HELPERS
+   ======================= */
+function $(sel){ return document.querySelector(sel); }
+function val(sel){ const el = $(sel); return el ? (el.value ?? '') : ''; }
+function uniquePreserveOrder(arr){ const seen=new Set(), out=[]; for(const v of arr){ if(!seen.has(v)){ seen.add(v); out.push(v); } } return out; }
+function parseList(text){ return text.split(/,|\n/).map(s=>s.trim()).filter(Boolean); }
+function checkedValue(name){ const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
 </script>
-
 </body>
 </html>
-
-
